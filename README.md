@@ -6,4 +6,5 @@ tail latency (e.g. p99). It keeps an online tau-quantile estimate of latency per
 (state, action) and acts epsilon-greedily on it.
 
     python -m reenlightment.train      # train + compare against baselines
+    python -m reenlightment.train research  # toy task-oriented "research network"
     python -m unittest discover -s tests
