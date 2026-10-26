@@ -38,7 +38,7 @@ def max_rate(scenario, policy, n_queries=None, seed=0, start=1.0, rel_tol=0.02, 
 
 
 def compare_max_rates(scenario, policies, n_queries=None, seed=0, verbose=False):
-    """{policy: max rate}, plus the gain of the last policy (normally edfq) over the others."""
+    """{policy: max sustainable rate in queries/s}."""
     rates = {p: max_rate(scenario, p, n_queries, seed, verbose=verbose) for p in policies}
     return rates
 
