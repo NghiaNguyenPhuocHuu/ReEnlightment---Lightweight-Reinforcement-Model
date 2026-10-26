@@ -4,7 +4,7 @@ import random
 from .agent import TailLatencyAgent
 from .env import TransportEnv
 from .q_agent import QLearningAgent
-from .research_env import ResearchNetworkEnv
+from .research_env import DSSPBudgetEnv, DSSPSensorEnv, ResearchNetworkEnv
 
 
 def percentile(xs, p):
@@ -117,5 +117,34 @@ if __name__ == "__main__":
     # Keep the existing default so current tests/docs keep working.
     if len(sys.argv) > 1 and sys.argv[1] == "research":
         main_research()
+    elif len(sys.argv) > 1 and sys.argv[1] == "dssp":
+        # Continuous (non-episodic) training loop over requests.
+        # Sensors-only DSSP focus for now.
+        env = DSSPSensorEnv(seed=0)
+        agent = QLearningAgent(env.n_actions, seed=0)
+
+        state = env.reset()
+        steps = 20000
+        for t in range(1, steps + 1):
+            action = agent.act(state, explore=True)
+            next_state, reward, done = env.step(action)
+            agent.update(state, action, reward, next_state, done)
+            state = next_state
+            if t % 2000 == 0:
+                print(f"step={t:5d}  epsilon={agent.epsilon:5.2f}")
+    elif len(sys.argv) > 1 and sys.argv[1] == "dssp-pipeline":
+        # Older multi-stage DSSP toy (kept for comparison).
+        env = DSSPBudgetEnv(seed=0)
+        agent = QLearningAgent(env.n_actions, seed=0)
+
+        state = env.reset()
+        steps = 20000
+        for t in range(1, steps + 1):
+            action = agent.act(state, explore=True)
+            next_state, reward, done = env.step(action)
+            agent.update(state, action, reward, next_state, done)
+            state = next_state
+            if t % 2000 == 0:
+                print(f"step={t:5d}  epsilon={agent.epsilon:5.2f}")
     else:
         main()
