@@ -171,6 +171,13 @@ reenlightment/
 tests/                      unittest suite
 ```
 
+## Roadmap
+
+* Phase 1 (in progress): firm up the DSSP simulation. See the checklist in
+  [docs/PHASE1_TODO.md](docs/PHASE1_TODO.md).
+* Phase 2 (planned): RL on top of the simulator, e.g. adaptive budget slack and
+  pod autoscaling.
+
 ## Development workflow
 
 * Run `make test` (or `python3 -m unittest discover -s tests`) before every commit.
