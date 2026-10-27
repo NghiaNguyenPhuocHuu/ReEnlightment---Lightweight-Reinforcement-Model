@@ -169,10 +169,13 @@ reenlightment/
     experiments.py          sweeps, max-rate search, CSV
     __main__.py             CLI
 tests/                      unittest suite
+learn/                      self-study guides (start with phase_0_learn.MD)
 ```
 
 ## Roadmap
 
+* Phase 0: learn the codebase with the self-study guide
+  [learn/phase_0_learn.MD](learn/phase_0_learn.MD).
 * Phase 1 (in progress): firm up the DSSP simulation. See the checklist in
   [docs/PHASE1_TODO.md](docs/PHASE1_TODO.md).
 * Phase 2 (planned): RL on top of the simulator, e.g. adaptive budget slack and
