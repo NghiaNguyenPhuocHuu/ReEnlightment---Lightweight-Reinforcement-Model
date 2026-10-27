@@ -21,6 +21,21 @@ Pure-Python (no dependencies, Python >= 3.9) experiments on SLO-aware data trans
 
 Nothing needs to be installed. Run commands from the repository root.
 
+### One-command shortcuts (Makefile)
+
+    make test                  # every unit test (verbose)
+    make test-dssp             # only tests/test_dssp*.py
+    make test-rl               # only the RL agent tests
+    make run RATE=20           # one DSSP run, all policies
+    make sweep SCENARIO=sim-small   # writes results/sweep-sim-small.csv
+    make maxrate               # FIFO vs SPR vs EDFQ
+    make demo                  # tests, then scenarios, run, maxrate
+    make help                  # list targets
+
+`SCENARIO` (default `testbed`), `RATE` (default `15`) and `PYTHON` (default
+`python3`) can be overridden on any target. New tests are picked up
+automatically if they live in `tests/` and are named `test_*.py`.
+
 ---
 
 ## Phase 1: DSSP data-transport simulation
@@ -158,6 +173,6 @@ tests/                      unittest suite
 
 ## Development workflow
 
-* Run `python3 -m unittest discover -s tests` before every commit.
+* Run `make test` (or `python3 -m unittest discover -s tests`) before every commit.
 * Commit one milestone or feature at a time, with a conventional prefix
   (`feat(dssp): ...`, `docs: ...`).
