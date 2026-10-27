@@ -1,7 +1,6 @@
 # Phase 1 — firm up the DSSP simulation
 
-Goal: make the FIFO / SPR / EDFQ comparison **statistically trustworthy** and
-check that the simulator reproduces the paper's *trends*, not just one table.
+Goal: make the FIFO / SPR / EDFQ comparison **statistically trustworthy** within the current considered states and check that the simulator reproduces the paper's _trends_, not just one table.
 
 Work on a branch: `git switch -c phase1-firm-up`. Tick boxes as you go, run
 `make test` before each commit, one commit per task.
@@ -12,7 +11,7 @@ A `maxrate` search is ~10–12 runs per policy.
 
 ---
 
-## 1. Multi-seed max rate with confidence intervals  ⭐ start here
+## 1. Multi-seed max rate with confidence intervals ⭐ start here
 
 Today `maxrate` uses one seed, so we don't know if +16.9 % over SPR is real or noise.
 
@@ -22,7 +21,7 @@ Today `maxrate` uses one seed, so we don't know if +16.9 % over SPR is real or n
       With n ≤ 30 seeds use the Student-t critical value, not 1.96
       (hint: hard-code t₀.₉₇₅ for df = 1..30; no scipy needed).
 - [ ] Report **paired gains**: for each seed compute `edfq / fifo − 1` on the
-      *same seed*, then CI over those ratios. Pairing removes shared noise and
+      _same seed_, then CI over those ratios. Pairing removes shared noise and
       gives much tighter intervals than comparing two means.
 - [ ] CLI: `maxrate --seeds 0-9` (or `--n-seeds 10`), print mean ± CI per policy
       and the paired-gain CIs.
@@ -57,9 +56,10 @@ Profile (`python3 -m cProfile -s cumtime -m reenlightment.dssp run --scenario si
 shows ~60 % of EDFQ time in `unloaded_task_tail` → 3.5 M calls to `cdf()`.
 
 Ideas, simplest first — measure after each:
+
 - [ ] For `kt == 1` the tail is just the node's own pt-quantile: index the sorted
       window directly instead of bisecting.
-- [ ] Bisect over the *candidate sample values* instead of 40 continuous
+- [ ] Bisect over the _candidate sample values_ instead of 40 continuous
       iterations (the answer is always one of the samples).
 - [ ] Cache each node's quantiles and invalidate only every N new samples
       (profiles change slowly; the paper's prototype refreshes a histogram).
@@ -82,7 +82,7 @@ simulator captures DSSP's behaviour.
       (4×25), (10×25), (20×50), (40×50) — go as far as runtime allows.
 - [ ] CLI `scale` subcommand → CSV `results/scale.csv`
       (size, policy, mean rate, CI, paired gain vs FIFO and vs SPR).
-- [ ] Compare the *trend* to Table VI. If gain does **not** grow, write down
+- [ ] Compare the _trend_ to Table VI. If gain does **not** grow, write down
       why you think so (hotspot placement? fanout mapping μ/1000? service
       distribution?) — that's a finding, not a failure.
 
@@ -91,7 +91,7 @@ Commit: `feat(dssp): scale study vs paper Table VI`
 
 ## 5. Sensitivity / robustness of the ranking
 
-All of these are *our* assumptions (see README "Assumptions"). Show the ranking
+All of these are _our_ assumptions (see README "Assumptions"). Show the ranking
 survives them.
 
 - [ ] CLI `--set key=value` that overrides `Scenario` fields
@@ -129,15 +129,17 @@ Commit: `docs: phase 1 results`
 ---
 
 ### Suggested order
+
 1 → 2 → 3 → 4 → 5 → 6 → 7. Tasks 1–2 are quick and change how you read every
 later number; 3 unblocks 4. 5 and 6 can be done in parallel.
 
 ### Where things live
-| concern | file |
-|---|---|
-| Eq. 1–6 budget math | `reenlightment/dssp/budget.py` |
-| event loop, policies | `reenlightment/dssp/sim.py` |
-| presets / `Scenario` fields | `reenlightment/dssp/scenarios.py` |
-| sweeps, max-rate search | `reenlightment/dssp/experiments.py` |
-| CLI | `reenlightment/dssp/__main__.py` |
-| tests | `tests/test_dssp_*.py` |
+
+| concern                     | file                                |
+| --------------------------- | ----------------------------------- |
+| Eq. 1–6 budget math         | `reenlightment/dssp/budget.py`      |
+| event loop, policies        | `reenlightment/dssp/sim.py`         |
+| presets / `Scenario` fields | `reenlightment/dssp/scenarios.py`   |
+| sweeps, max-rate search     | `reenlightment/dssp/experiments.py` |
+| CLI                         | `reenlightment/dssp/__main__.py`    |
+| tests                       | `tests/test_dssp_*.py`              |
