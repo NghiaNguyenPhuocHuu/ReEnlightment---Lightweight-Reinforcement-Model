@@ -6,6 +6,7 @@ the rest on the exercises. Every exercise is safe to try. Undo any experiment
 with `git checkout -- <file>`.
 
 **Contents**
+
 1. [The big picture](#1-the-big-picture)
 2. [The DSSP vocabulary](#2-the-dssp-vocabulary)
 3. [Discrete-event simulation in 5 minutes](#3-discrete-event-simulation-in-5-minutes)
@@ -62,26 +63,26 @@ environment, so an agent can learn to tune DSSP.
 
 ## 2. The DSSP vocabulary
 
-DSSP comes from *DSSP: An SLO-aware Multi-Domain-based Sensing-as-a-Service
-Platform*, by Che, Sun, Wang and Jiang (PerCom 2026 Workshops; preprint
+DSSP comes from _DSSP: An SLO-aware Multi-Domain-based Sensing-as-a-Service
+Platform_, by Che, Sun, Wang and Jiang (PerCom 2026 Workshops; preprint
 [arXiv:2308.11985](https://arxiv.org/abs/2308.11985)).
 
 **The setting:** many independent organisations own sensors. A cloud
 provider sells "sensing as a service". A user asks a question such as
 "temperature over this area for the last hour", and the answer has to come
-back fast: *99 % of queries in under 500 ms*.
+back fast: _99 % of queries in under 500 ms_.
 
-| Term | Meaning | In the code |
-|---|---|---|
-| **CSP** | Cloud service provider. It receives the user's query and dispatches it | Implicit: the dispatch logic in `Simulator._arrive` |
-| **IAD** | Independent sensing administrative domain: one organisation's pool of edge nodes | `sim.iads[i]`, a list of `EdgeNode` |
-| **Edge node** | A device (Raspberry Pi) with sensors, one queue and one or more pods | `EdgeNode` |
-| **Pod** | A worker on a node that executes one subtask at a time | `EdgeNode.pods`, `EdgeNode.busy` |
-| **Query** | One user request; belongs to a class | `_Query` |
-| **Task** | The part of a query sent to one IAD | `_Task` |
-| **Subtask** | The part of a task sent to one edge node | `_Subtask` |
-| **kq / kt** | Query fanout (number of IADs) / task fanout (nodes per IAD) | `QueryClass.iad_fanout`, `.node_fanout` |
-| **SLO** | Service-level objective: "p99 latency ≤ X ms" per class | `QueryClass.slo_ms`, `.percentile` |
+| Term          | Meaning                                                                          | In the code                                         |
+| ------------- | -------------------------------------------------------------------------------- | --------------------------------------------------- |
+| **CSP**       | Cloud service provider. It receives the user's query and dispatches it           | Implicit: the dispatch logic in `Simulator._arrive` |
+| **IAD**       | Independent sensing administrative domain: one organisation's pool of edge nodes | `sim.iads[i]`, a list of `EdgeNode`                 |
+| **Edge node** | A device (Raspberry Pi) with sensors, one queue and one or more pods             | `EdgeNode`                                          |
+| **Pod**       | A worker on a node that executes one subtask at a time                           | `EdgeNode.pods`, `EdgeNode.busy`                    |
+| **Query**     | One user request; belongs to a class                                             | `_Query`                                            |
+| **Task**      | The part of a query sent to one IAD                                              | `_Task`                                             |
+| **Subtask**   | The part of a task sent to one edge node                                         | `_Subtask`                                          |
+| **kq / kt**   | Query fanout (number of IADs) / task fanout (nodes per IAD)                      | `QueryClass.iad_fanout`, `.node_fanout`             |
+| **SLO**       | Service-level objective: "p99 latency ≤ X ms" per class                          | `QueryClass.slo_ms`, `.percentile`                  |
 
 ```
                    ┌──► IAD 1 ──► node a, node b         (task 1: kt = 2)
@@ -155,7 +156,7 @@ Read the methods in this order, which is the order events happen:
 3. **`_enqueue(now, st)`**: the only place the policies differ (§6).
 4. **`_start(now, node)`**: while there's a free pod and a waiting subtask,
    pop the lowest key. For EDFQ, a subtask popped after its deadline counts
-   as a *deadline miss*.
+   as a _deadline miss_.
 5. **`_done(now, st)`**: the profile update here is what makes the budgets
    **adaptive**: nodes that get slower produce bigger unloaded tails.
 6. **`_return(now, st)`**: countdown counters. `pending` starts at the
@@ -177,17 +178,17 @@ SimResult
 
 ### Two kinds of randomness
 
-| What | Controlled by | Why |
-|---|---|---|
-| Which nodes are slow (the "hardware") | `Scenario.layout_seed` | Fixed, so every run sees the same testbed |
-| Traffic, service times, fanouts | `seed` argument | Changes per run; Phase 1 task 1 averages over many seeds |
+| What                                  | Controlled by          | Why                                                      |
+| ------------------------------------- | ---------------------- | -------------------------------------------------------- |
+| Which nodes are slow (the "hardware") | `Scenario.layout_seed` | Fixed, so every run sees the same testbed                |
+| Traffic, service times, fanouts       | `seed` argument        | Changes per run; Phase 1 task 1 averages over many seeds |
 
 ---
 
 ## 5. The budget math ([budget.py](../reenlightment/dssp/budget.py))
 
-This is DSSP's main contribution. It turns *"p99 query latency ≤ SLO"* into
-*"this subtask must start by time X"*, which a single node can act on.
+This is DSSP's main contribution. It turns _"p99 query latency ≤ SLO"_ into
+_"this subtask must start by time X"_, which a single node can act on.
 
 ### Step 1: query percentile → task percentile (Eq. 1–2), `task_percentile`
 
@@ -224,11 +225,11 @@ deadline = enqueue_time + tQ
 
 ### Worked example (real numbers, `testbed`, IAD4)
 
-| Class | kq | kt | pt | x_u (unloaded tail) | SLO | tQ (queuing budget) |
-|---|---|---|---|---|---|---|
-| 1.2 | 1 | 1 | 99.000 | 210 ms | 500 | **290 ms** |
-| 2   | 4 | 1 | 99.749 | 242 ms | 800 | **558 ms** |
-| 3   | 4 | 8 | 99.749 | 443 ms | 1200 | **757 ms** |
+| Class | kq  | kt  | pt     | x_u (unloaded tail) | SLO  | tQ (queuing budget) |
+| ----- | --- | --- | ------ | ------------------- | ---- | ------------------- |
+| 1.2   | 1   | 1   | 99.000 | 210 ms              | 500  | **290 ms**          |
+| 2     | 4   | 1   | 99.749 | 242 ms              | 800  | **558 ms**          |
+| 3     | 4   | 8   | 99.749 | 443 ms              | 1200 | **757 ms**          |
 
 How to read it: class 3 needs a higher percentile (step 1) **and** waits for
 the slowest of 8 nodes (step 2), so its unloaded tail is double class 1.2's.
@@ -242,13 +243,14 @@ queue. You'll reproduce this table in Exercise 3.
 All three use the same heap per node and differ only in the **sort key**
 built in `_enqueue`:
 
-| Policy | Key | Behaviour |
-|---|---|---|
-| `fifo` | `now` | First come, first served. Ignores SLOs entirely. |
-| `spr` | `(class rank, now)` | Strict priority: the tightest SLO always goes first. |
+| Policy | Key                   | Behaviour                                                                 |
+| ------ | --------------------- | ------------------------------------------------------------------------- |
+| `fifo` | `now`                 | First come, first served. Ignores SLOs entirely.                          |
+| `spr`  | `(class rank, now)`   | Strict priority: the tightest SLO always goes first.                      |
 | `edfq` | `now + tq` (deadline) | DSSP: the most urgent subtask goes first, judged by its remaining budget. |
 
 Why EDFQ wins (look at `make run RATE=20`):
+
 - **FIFO** makes the tight 500 ms classes wait behind loose 1200 ms work, so
   class 1.x misses its SLO first.
 - **SPR** fixes that but **starves** class 3. Under load, class 3 can wait
@@ -293,12 +295,12 @@ wraps them as `make scenarios / run / sweep / maxrate`.
 
 ## 8. The RL half (older, separate)
 
-| File | What | Run |
-|---|---|---|
-| [agent.py](../reenlightment/agent.py) | `TailLatencyAgent`: learns each action's p99 by **quantile regression** (nudges the estimate up by `τ` when a sample is above it, down by `1−τ` when below) and picks the lowest | `python3 -m reenlightment.train` |
-| [env.py](../reenlightment/env.py) | `TransportEnv`: 3 paths; the fastest-on-average one has the worst tail | (same) |
-| [q_agent.py](../reenlightment/q_agent.py) | `QLearningAgent`: textbook tabular Q-learning, ε-greedy | — |
-| [research_env.py](../reenlightment/research_env.py) | `ResearchNetworkEnv` (task DAG), and `DSSPSensorEnv` / `DSSPBudgetEnv`: **toy** DSSP models with made-up latency formulas | `python3 -m reenlightment.train research / dssp / dssp-pipeline` |
+| File                                                | What                                                                                                                                                                             | Run                                                              |
+| --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| [agent.py](../reenlightment/agent.py)               | `TailLatencyAgent`: learns each action's p99 by **quantile regression** (nudges the estimate up by `τ` when a sample is above it, down by `1−τ` when below) and picks the lowest | `python3 -m reenlightment.train`                                 |
+| [env.py](../reenlightment/env.py)                   | `TransportEnv`: 3 paths; the fastest-on-average one has the worst tail                                                                                                           | (same)                                                           |
+| [q_agent.py](../reenlightment/q_agent.py)           | `QLearningAgent`: textbook tabular Q-learning, ε-greedy                                                                                                                          | —                                                                |
+| [research_env.py](../reenlightment/research_env.py) | `ResearchNetworkEnv` (task DAG), and `DSSPSensorEnv` / `DSSPBudgetEnv`: **toy** DSSP models with made-up latency formulas                                                        | `python3 -m reenlightment.train research / dssp / dssp-pipeline` |
 
 `DSSPSensorEnv` doesn't use the real simulator. In Phase 2 it would be
 replaced by an environment whose `step()` advances `Simulator` and whose
@@ -308,12 +310,12 @@ reward comes from real SLO misses.
 
 ## 9. Tests
 
-| File | What it guarantees |
-|---|---|
-| [test_dssp_budget.py](../tests/test_dssp_budget.py) | Eq. 2 matches the paper's numbers; the profile window evicts correctly; the unloaded tail matches the known math (max of n uniforms) |
-| [test_dssp_sim.py](../tests/test_dssp_sim.py) | Same seed gives the same result; every query completes; light load meets the SLO and overload violates it; SPR favours tight classes |
-| [test_dssp_experiments.py](../tests/test_dssp_experiments.py) | `max_rate` returns a rate that really passes; CSV has the right columns; CLI runs |
-| [test_agent.py](../tests/test_agent.py) | The quantile estimate converges; the RL agent beats the baselines on p99 |
+| File                                                          | What it guarantees                                                                                                                   |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| [test_dssp_budget.py](../tests/test_dssp_budget.py)           | Eq. 2 matches the paper's numbers; the profile window evicts correctly; the unloaded tail matches the known math (max of n uniforms) |
+| [test_dssp_sim.py](../tests/test_dssp_sim.py)                 | Same seed gives the same result; every query completes; light load meets the SLO and overload violates it; SPR favours tight classes |
+| [test_dssp_experiments.py](../tests/test_dssp_experiments.py) | `max_rate` returns a rate that really passes; CSV has the right columns; CLI runs                                                    |
+| [test_agent.py](../tests/test_agent.py)                       | The quantile estimate converges; the RL agent beats the baselines on p99                                                             |
 
 Run `make test` (all), `make test-dssp`, or a single file:
 `python3 -m unittest tests.test_dssp_sim -v`.
@@ -325,26 +327,31 @@ Run `make test` (all), `make test-dssp`, or a single file:
 Do them in order. Each one takes 5–15 minutes.
 
 **Ex 1: First runs.**
+
 ```
 make scenarios
 make run RATE=10
 make run RATE=20
 ```
+
 Which policy fails at 20 q/s, and which class causes it? Compare class 3's
 p99 under `spr` and `edfq`.
 
 **Ex 2: Follow one subtask.** In `Simulator._enqueue`, temporarily add this
 just before the `heapq.heappush(...)` line (after the deadline is set):
+
 ```python
 if self.policy == "edfq" and self._subtasks < 10:
     print(f"t={now:8.1f} class={st.task.query.cls.name:4s} node={node.iad}/{node.index} "
           f"tq={st.tq:6.1f} deadline={st.deadline:8.1f}")
 ```
+
 Run `python3 -m reenlightment.dssp run --queries 50`. Do the `tq` values
-match the table in §5? Why are they not *exactly* equal? (Hint: which nodes
+match the table in §5? Why are they not _exactly_ equal? (Hint: which nodes
 were picked.) Revert afterwards.
 
 **Ex 3: Reproduce the budget table.** In `python3`:
+
 ```python
 from reenlightment.dssp.scenarios import get_scenario
 from reenlightment.dssp.sim import Simulator
@@ -356,11 +363,12 @@ pt = task_percentile(99, 4)
 xu = unloaded_task_tail([n.profile for n in iad4], pt)
 print(pt, xu, queuing_budget(1200, xu))
 ```
+
 Then compute `x_u` for a **single slow node** versus a **single fast node**.
 How much budget does a slow node cost a subtask?
 
 **Ex 4: Break a policy on purpose.** In `_enqueue`, make `spr` rank the
-*loosest* SLO first (reverse the rank). Run `make run RATE=15` and explain
+_loosest_ SLO first (reverse the rank). Run `make run RATE=15` and explain
 what happens to classes 1.1 and 1.2. Revert.
 
 **Ex 5: Your own scenario.** In `scenarios.py`, copy `TESTBED` to a
@@ -378,8 +386,9 @@ at very light load (rate 1), `deadline_miss_rate == 0` for EDFQ. Run
 
 <details><summary>1. Why does a query with kq = 4 need each task at p99.749 rather than p99?</summary>
 
-The query is late if *any* of its 4 tasks is late. Assuming independence,
+The query is late if _any_ of its 4 tasks is late. Assuming independence,
 P(all 4 on time) = pt⁴. Solving pt⁴ = 0.99 gives pt = 0.99^(1/4) ≈ 0.99749.
+
 </details>
 
 <details><summary>2. Why does the simulator draw a subtask's service time at dispatch instead of when it starts?</summary>
@@ -387,6 +396,7 @@ P(all 4 on time) = pt⁴. Solving pt⁴ = 0.99 gives pt = 0.99^(1/4) ≈ 0.99749
 Reproducibility, and it keeps the handlers simple. The draws happen in the
 same order regardless of queue state, so a given seed gives identical
 results. It also lets `_done` know `net_back` without another random call.
+
 </details>
 
 <details><summary>3. What would happen to EDFQ budgets if `UnloadedProfile` included queuing time?</summary>
@@ -395,6 +405,7 @@ Under load, the "unloaded" tail would grow with the queues, so `tQ` would
 shrink, so every subtask would look urgent and deadlines would stop
 discriminating between classes. EDFQ would collapse towards FIFO. That's
 why `_done` records `net_out + service + net_back` only.
+
 </details>
 
 <details><summary>4. Why does max_rate use the same seed for every probe?</summary>
@@ -402,6 +413,7 @@ why `_done` records `net_out + service + net_back` only.
 Common random numbers. Every rate and every policy sees the same random
 stream (as far as possible), so a pass/fail difference comes from the
 policy, not from luck. It reduces variance in comparisons.
+
 </details>
 
 <details><summary>5. Why discard the first 10 % of queries?</summary>
@@ -409,6 +421,7 @@ policy, not from luck. It reduces variance in comparisons.
 The simulation starts with empty queues, which is unrealistically fast.
 Counting those queries would make p99 look better than the steady state.
 Phase 1 task 2 checks whether 10 % is enough.
+
 </details>
 
 <details><summary>6. What does `infeasible_rate > 0` mean?</summary>
@@ -418,6 +431,7 @@ SLO`). Even with zero queuing, that task would miss its percentile. The
 budget is clamped to 0, so the subtask is maximally urgent, but no
 scheduler can save it. It signals that the hardware or the SLO is wrong, not
 the policy.
+
 </details>
 
 <details><summary>7. Where would you plug in a learned (RL) scheduler?</summary>
@@ -425,24 +439,25 @@ the policy.
 In `Simulator._enqueue`: it decides the sort key. For example, an agent
 could output a per-IAD multiplier on `tq`, or a whole new key. The rest of
 the simulator stays unchanged.
+
 </details>
 
 ---
 
 ## 12. Glossary
 
-| Term | Meaning |
-|---|---|
-| p99 / tail latency | The latency that 99 % of queries beat; the slowest 1 % sits above it |
-| SLO | Service-level objective: a target such as "p99 ≤ 500 ms" |
-| Fanout | How many parallel children a request splits into |
-| Unloaded time | Response time without queuing (network + execution) |
-| Budget decomposition | Splitting an end-to-end SLO into per-component targets |
-| EDF / EDFQ | Earliest deadline first (queuing) |
-| SPR | Strict priority |
-| Max sustainable rate | Highest arrival rate at which every class still meets its SLO |
-| Common random numbers | Reusing seeds across configurations to make comparisons fairer |
-| Poisson arrivals | Exponential gaps between queries; a memoryless "random traffic" model |
-| Warm-up | Initial period excluded from measurement |
+| Term                  | Meaning                                                               |
+| --------------------- | --------------------------------------------------------------------- |
+| p99 / tail latency    | The latency that 99 % of queries beat; the slowest 1 % sits above it  |
+| SLO                   | Service-level objective: a target such as "p99 ≤ 500 ms"              |
+| Fanout                | How many parallel children a request splits into                      |
+| Unloaded time         | Response time without queuing (network + execution)                   |
+| Budget decomposition  | Splitting an end-to-end SLO into per-component targets                |
+| EDF / EDFQ            | Earliest deadline first (queuing)                                     |
+| SPR                   | Strict priority                                                       |
+| Max sustainable rate  | Highest arrival rate at which every class still meets its SLO         |
+| Common random numbers | Reusing seeds across configurations to make comparisons fairer        |
+| Poisson arrivals      | Exponential gaps between queries; a memoryless "random traffic" model |
+| Warm-up               | Initial period excluded from measurement                              |
 
 Next: [docs/PHASE1_TODO.md](../docs/PHASE1_TODO.md).
