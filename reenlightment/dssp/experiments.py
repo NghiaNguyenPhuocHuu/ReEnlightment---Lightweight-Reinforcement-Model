@@ -36,6 +36,10 @@ def max_rate(scenario, policy, n_queries=None, seed=0, start=1.0, rel_tol=0.02, 
             hi = mid
     return lo
 
+def max_rate_over_seeds(scenario, policy, seeds, n_queries = None, rel_tol = 0.02, verbose = False):
+    """Max sustainable rate for each seed, in the order given; feed to the stats helper"""
+    return [max_rate(scenario, policy, n_queries, s, rel_tol=rel_tol, verbose=verbose) 
+            for s in seeds]
 
 def compare_max_rates(scenario, policies, n_queries=None, seed=0, verbose=False):
     """{policy: max sustainable rate in queries/s}."""
